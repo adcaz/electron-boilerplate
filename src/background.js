@@ -32,13 +32,20 @@ if (env.name !== 'production') {
     app.setPath('userData', userDataPath + ' (' + env.name + ')');
 }
 
+app.commandLine.appendSwitch("--enable-experimental-web-platform-features");
+
 app.on('ready', function () {
     setApplicationMenu();
 
     var mainWindow = createWindow('main', {
-        width: 1000,
+	show: false,        
+	width: 1000,
         height: 600
     });
+
+    mainWindow.once('ready-to-show', () => {
+      mainWindow.show()
+    })
 
     mainWindow.loadURL(url.format({
         pathname: path.join(__dirname, 'app.html'),
@@ -48,6 +55,14 @@ app.on('ready', function () {
 
     if (env.name === 'development') {
         mainWindow.openDevTools();
+	mainWindow.webContents.on('context-menu', (e, props) => {
+            const { x, y } = props;
+
+            Menu.buildFromTemplate([{
+            	label: 'Inspect element',
+            	click() { mainWindow.inspectElement(x, y) }
+          }]).popup(mainWindow);
+        });
     }
 });
 
